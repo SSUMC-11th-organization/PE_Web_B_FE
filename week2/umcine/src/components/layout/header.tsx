@@ -1,4 +1,7 @@
-export default function Header() {
+import { Link } from "@tanstack/react-router";
+import { cn } from "../../utils/cn";
+
+export function Header() {
   return (
     <header className="header">
       <div className="header-left">
@@ -10,9 +13,9 @@ export default function Header() {
         </a>
 
         <nav className="nav">
-          <a href="/">영화</a>
-          <a href="/">검색</a>
-          <a href="/">내 정보</a>
+          <Link to="/">영화</Link>
+          <Link to="/search">검색</Link>
+          <a href="/profile">내 정보</a>
         </nav>
       </div>
 
@@ -20,7 +23,7 @@ export default function Header() {
         <button type="button" className="icon-button" aria-label="검색">
           <img src="/icons/search.svg" alt="" />
         </button>
-        <button type="button" className="login-button">
+        <button type="button" className={cn("login-button")}>
           로그인
         </button>
       </div>
