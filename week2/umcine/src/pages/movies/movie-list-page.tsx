@@ -1,5 +1,4 @@
 import { useState } from "react";
-import "../../App.css";
 import MovieGrid from "../../components/movies/movie-grid";
 import Pagination from "../../components/movies/pagination";
 import { movies as initialMovies } from "../../data/movies";
@@ -20,8 +19,10 @@ export function MovieListPage() {
 
   return (
     <>
-      <main className="main">
-        <h1 className="page-title">영화 목록</h1>
+      <main className="flex-1 px-4 pt-7 pb-14 sm:px-10">
+        <h1 className="mt-2 mb-6 text-[26px] font-bold text-[#1a1a1a]">
+          영화 목록
+        </h1>
         <MovieGrid movies={movies} onToggleBookmark={handleToggleBookmark} />
         <Pagination
           currentPage={currentPage}
@@ -30,9 +31,9 @@ export function MovieListPage() {
         />
       </main>
 
-      <footer className="footer">
+      <footer className="flex items-center justify-end gap-2 border-t border-[#ebebeb] px-4 py-[18px] text-xs text-[#9a9a9a] sm:px-10">
         <img
-          className="footer-logo"
+          className="h-3.5 w-auto"
           src="/images/logos/tmdb-logo.svg"
           alt="TMDB"
         />
