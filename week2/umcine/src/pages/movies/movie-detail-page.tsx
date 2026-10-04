@@ -1,4 +1,5 @@
 import { Link, useParams } from "@tanstack/react-router";
+import { BookmarkButton } from "../../components/movies/bookmark-button";
 import { movies } from "../../data/movies";
 
 export function MovieDetailPage() {
@@ -8,8 +9,8 @@ export function MovieDetailPage() {
     if (!movie) {
         return (
             <main className="flex flex-1 flex-col items-center justify-center gap-4 px-4 py-20">
-                <p className="text-[15px] text-[#9a9a9a]">영화를 찾을 수 없어요.</p>
-                <Link to="/" className="text-sm font-semibold text-[#2563eb] hover:underline">
+                <p className="text-sm text-ink-tertiary">영화를 찾을 수 없어요.</p>
+                <Link to="/" className="text-sm font-extrabold text-action hover:underline">
                     영화 목록으로
                 </Link>
             </main>
@@ -18,50 +19,46 @@ export function MovieDetailPage() {
 
     return (
         <main className="flex-1">
-            <section className="relative isolate overflow-hidden bg-[#1a1a1a] text-white">
+            <section className="relative isolate flex h-[360px] flex-col justify-between overflow-hidden bg-ink px-4 py-6 text-white sm:px-10 lg:px-20">
                 <img
-                    className="absolute inset-0 -z-10 size-full object-cover opacity-40"
+                    className="absolute inset-0 -z-10 size-full object-cover"
                     src={movie.backdropPath}
                     alt=""
                     aria-hidden="true"
                 />
-                <div className="absolute inset-0 -z-10 bg-linear-to-r from-black/80 via-black/50 to-transparent" />
+                {/* 배경이 밝은 영화에서도 흰 글자가 읽히도록 아래쪽만 어둡게 해요 */}
+                <div className="absolute inset-0 -z-10 bg-linear-to-t from-black/60 via-black/10 to-black/20" />
 
-                <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 pt-6 pb-10 sm:px-10 sm:pb-14">
-                    <Link
-                        to="/"
-                        className="flex w-fit items-center gap-1 text-sm text-white/80 transition-colors hover:text-white"
-                    >
-                        <img className="size-4 rotate-180 invert" src="/icons/arrow-right.svg" alt="" />
-                        영화 목록
-                    </Link>
+                <Link to="/" className="flex w-fit items-center gap-1 text-[13px] font-bold">
+                    <img className="size-6 invert" src="/icons/chevron-left.svg" alt="" />
+                    영화 목록
+                </Link>
 
-                    <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:gap-10">
-                        <img
-                            className="aspect-2/3 w-40 shrink-0 rounded-[10px] object-cover shadow-2xl sm:w-60"
-                            src={movie.posterPath}
-                            alt={`${movie.title} 포스터`}
-                        />
-
-                        <div className="flex flex-col gap-2">
-                            <h1 className="text-3xl font-bold sm:text-4xl">{movie.title}</h1>
-                            <p className="text-base text-white/70">{movie.originalTitle}</p>
-                            <p className="mt-2 flex flex-wrap items-center gap-x-2 text-sm text-white/80">
-                                <span>{movie.releaseDate}</span>
-                                <span aria-hidden="true">·</span>
-                                <span>{movie.genres.join(", ")}</span>
-                                <span aria-hidden="true">·</span>
-                                <span>{movie.runtime}</span>
-                            </p>
-                        </div>
-                    </div>
+                <div className="flex max-w-[800px] flex-col gap-2">
+                    <h1 className="text-[32px] leading-[1.08] font-bold tracking-[-1.6px] sm:text-[46px] sm:tracking-[-2.3px]">
+                        {movie.title}
+                    </h1>
+                    <p className="text-sm">{movie.originalTitle}</p>
+                    <p className="flex flex-wrap items-center gap-x-2 text-[13px] font-bold">
+                        <span>{movie.releaseDate}</span>
+                        <span>{movie.genres.join(" · ")}</span>
+                        <span>{movie.runtime}</span>
+                    </p>
                 </div>
             </section>
 
-            <section className="mx-auto max-w-6xl px-4 py-10 sm:px-10">
-                <h2 className="text-lg font-semibold italic text-[#4b4b4b]">{movie.tagline}</h2>
-                <h3 className="mt-6 mb-2 text-base font-semibold">줄거리</h3>
-                <p className="max-w-3xl text-[15px] leading-relaxed text-[#4b4b4b]">{movie.overview}</p>
+            <section className="flex flex-col items-start gap-6 px-4 py-6 sm:flex-row sm:gap-8 sm:px-10 lg:px-20">
+                <img
+                    className="h-[286px] w-[200px] shrink-0 rounded-[10px] bg-page object-cover shadow-[0_12px_30px_0_rgba(12,15,20,0.12)]"
+                    src={movie.posterPath}
+                    alt={`${movie.title} 포스터`}
+                />
+
+                <div className="flex min-w-0 flex-1 flex-col items-start gap-3">
+                    <h2 className="text-[21px] font-bold tracking-[-0.63px] text-ink">{movie.tagline}</h2>
+                    <p className="text-sm leading-6 text-ink-secondary">{movie.overview}</p>
+                    <BookmarkButton movieId={movie.id} movieTitle={movie.title} variant="label" />
+                </div>
             </section>
         </main>
     );
