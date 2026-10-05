@@ -1,20 +1,23 @@
 import type { Movie } from "../../types/movie";
+import { useViewSettingsStore, type CardSize } from "../../stores/view-settings-store";
 import { MovieCard } from "./movie-card";
 
 interface MovieGridProps {
   movies: Movie[];
-  onToggleBookmark: (movieId: number) => void;
 }
 
-export function MovieGrid({ movies, onToggleBookmark }: MovieGridProps) {
+const GRID_CLASS: Record<CardSize, string> = {
+  small: "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5",
+  large: "grid-cols-1 sm:grid-cols-2 xl:grid-cols-3",
+};
+
+export function MovieGrid({ movies }: MovieGridProps) {
+  const cardSize = useViewSettingsStore((state) => state.cardSize);
+
   return (
-    <section className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+    <section className={`grid gap-y-6 gap-x-4 ${GRID_CLASS[cardSize]}`}>
       {movies.map((movie) => (
-        <MovieCard
-          key={movie.id}
-          movie={movie}
-          onToggleBookmark={onToggleBookmark}
-        />
+        <MovieCard key={movie.id} movie={movie} />
       ))}
     </section>
   );
