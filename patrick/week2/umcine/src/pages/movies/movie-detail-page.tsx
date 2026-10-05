@@ -1,5 +1,6 @@
 import { Link, useParams } from "@tanstack/react-router";
 import { movies } from "../../data/movies";
+import { BookmarkButton } from "../../components/bookmark-button";
 
 export function MovieDetailPage() {
   const { movieId } = useParams({ from: "/movies/$movieId" });
@@ -14,6 +15,7 @@ export function MovieDetailPage() {
       <img src={movie.backdropPath} alt="" aria-hidden="true" />
       <Link to="/">영화 목록</Link>
       <img src={movie.posterPath} alt={`${movie.title} 포스터`} />
+      <BookmarkButton movieId={movie.id} /> 
       <h1>{movie.title}</h1>
       <p>{movie.originalTitle}</p>
       <p>{movie.releaseDate}</p>
