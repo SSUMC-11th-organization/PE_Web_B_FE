@@ -1,6 +1,10 @@
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import type { SubmitEvent } from "react";
+import { BookmarkButton } from "../../components/movies/bookmark-button";
 import { movies } from "../../data/movies";
+
+const submitButtonClassName =
+    "h-[42px] shrink-0 cursor-pointer rounded-lg bg-ink px-4 text-sm font-extrabold whitespace-nowrap text-white transition-colors hover:bg-ink/85";
 
 export function SearchPage() {
     const { query } = useSearch({ from: "/search" });
@@ -24,79 +28,113 @@ export function SearchPage() {
         });
     }
 
-    return (
-        <main className="mx-auto w-full max-w-4xl flex-1 px-4 pt-7 pb-14 sm:px-10">
-            <h1 className="mt-2 mb-6 text-[26px] font-bold">영화 검색</h1>
+    if (!normalizedQuery) {
+        return (
+            <main className="flex flex-1 flex-col items-center px-4 py-24 sm:px-[72px] sm:pt-[209px]">
+                <div className="flex w-full max-w-[790px] flex-col items-center gap-9">
+                    <h1 className="text-center text-[32px] leading-[1.14] font-bold tracking-[-1.6px] sm:text-[46px] sm:tracking-[-2.3px]">
+                        어떤 영화를 찾고 있나요?
+                    </h1>
+                    <form
+                        onSubmit={handleSubmit}
+                        className="flex h-[74px] w-full items-center gap-3.5 rounded-xl border-2 border-ink bg-surface pr-[17px] pl-[21px] drop-shadow-[0_12px_17px_rgba(17,19,24,0.08)]"
+                    >
+                        <img className="size-6 shrink-0" src="/icons/search.svg" alt="" />
+                        <input
+                            name="query"
+                            type="search"
+                            aria-label="영화 제목"
+                            placeholder="예: 스파이더맨"
+                            className="min-w-0 flex-1 text-[17px] outline-none placeholder:text-ink-tertiary"
+                        />
+                        <button type="submit" className={submitButtonClassName}>
+                            검색
+                        </button>
+                    </form>
+                    <p className="text-sm text-ink-tertiary">검색어를 입력해 주세요.</p>
+                </div>
+            </main>
+        );
+    }
 
-            <form onSubmit={handleSubmit} className="flex gap-2">
-                <div className="relative flex-1">
-                    <img
-                        className="pointer-events-none absolute top-1/2 left-3 size-5 -translate-y-1/2 opacity-50"
-                        src="/icons/search.svg"
-                        alt=""
-                    />
+    return (
+        <main className="flex flex-1 flex-col px-4 py-6 sm:px-10 lg:px-20">
+            <div className="flex flex-col gap-[17px]">
+                <h1 className="text-[38px] leading-[44px] font-bold tracking-[-1.71px]">영화 검색</h1>
+                <form
+                    onSubmit={handleSubmit}
+                    className="flex h-[54px] items-center gap-[18px] rounded-[9px] border border-line bg-surface pr-2.5 pl-[15px]"
+                >
+                    <img className="size-6 shrink-0" src="/icons/search.svg" alt="" />
                     {/* URL의 query가 바뀌면 key가 바뀌어 입력창이 새 검색어로 초기화돼요 */}
                     <input
                         key={query}
                         name="query"
                         type="search"
                         aria-label="검색어"
-                        placeholder="영화 제목이나 원제를 입력해 주세요"
                         defaultValue={query ?? ""}
-                        className="h-11 w-full rounded-lg border border-[#e5e5e7] pr-3 pl-10 text-[15px] outline-none placeholder:text-[#9a9a9a] focus:border-[#2563eb]"
+                        className="min-w-0 flex-1 text-sm font-bold outline-none [&::-webkit-search-cancel-button]:hidden"
                     />
-                </div>
-                <button
-                    type="submit"
-                    className="h-11 cursor-pointer rounded-lg bg-[#2563eb] px-5 text-[15px] whitespace-nowrap text-white transition-colors hover:bg-[#1d4ed8]"
-                >
-                    검색
-                </button>
-            </form>
+                    <Link to="/search" className="shrink-0" aria-label="검색어 지우기">
+                        <img className="size-6" src="/icons/close.svg" alt="" />
+                    </Link>
+                    <button type="submit" className={submitButtonClassName}>
+                        다시 검색
+                    </button>
+                </form>
+            </div>
 
-            {!normalizedQuery ? (
-                <p className="py-20 text-center text-[15px] text-[#9a9a9a]">
-                    검색어를 입력해 주세요.
+            <div className="flex h-[54px] items-center justify-between gap-4 border-b border-line">
+                <h2 className="truncate text-lg font-bold">‘{query}’ 검색 결과</h2>
+                <p className="shrink-0 text-xs text-ink-tertiary">영화 {searchResults.length}편</p>
+            </div>
+
+            {searchResults.length === 0 ? (
+                <p className="py-20 text-center text-sm text-ink-tertiary">
+                    ‘{query}’와 일치하는 영화가 없어요.
                 </p>
             ) : (
-                <section className="mt-8">
-                    <div className="mb-4 flex items-baseline gap-2">
-                        <h2 className="text-lg font-semibold">‘{query}’ 검색 결과</h2>
-                        <p className="text-sm text-[#9a9a9a]">영화 {searchResults.length}편</p>
-                    </div>
-
-                    {searchResults.length === 0 ? (
-                        <p className="py-20 text-center text-[15px] text-[#9a9a9a]">
-                            ‘{query}’와 일치하는 영화가 없어요.
-                        </p>
-                    ) : (
-                        <ul className="flex flex-col divide-y divide-[#ebebeb]">
-                            {searchResults.map((movie) => (
-                                <li key={movie.id}>
+                <ul className="grid grid-cols-1 gap-x-10 lg:grid-cols-2">
+                    {searchResults.map((movie) => (
+                        <li key={movie.id} className="min-w-0">
+                            <article className="flex gap-[18px] border-b border-line py-5">
+                                <Link
+                                    to="/movies/$movieId"
+                                    params={{ movieId: String(movie.id) }}
+                                    className="shrink-0"
+                                >
+                                    <img
+                                        className="h-[190px] w-[126px] rounded-[10px] bg-page object-cover"
+                                        src={movie.posterPath}
+                                        alt={`${movie.title} 포스터`}
+                                    />
+                                </Link>
+                                <div className="flex min-w-0 flex-1 flex-col items-start gap-2 pt-1">
+                                    <h3 className="text-lg leading-[24.3px] font-bold">{movie.title}</h3>
+                                    <p className="flex flex-wrap gap-x-2 text-xs text-ink-tertiary">
+                                        <span>{movie.originalTitle}</span>
+                                        <span>{movie.releaseDate}</span>
+                                    </p>
+                                    <p className="line-clamp-3 min-h-[66px] text-[12.5px] leading-[20.25px] text-ink-secondary">
+                                        {movie.overview}
+                                    </p>
                                     <Link
                                         to="/movies/$movieId"
                                         params={{ movieId: String(movie.id) }}
-                                        className="flex gap-4 rounded-[10px] py-4 transition-colors hover:bg-[#f4f4f5] sm:gap-5 sm:px-3"
+                                        className="flex items-center gap-1 text-xs font-extrabold text-action hover:underline"
                                     >
-                                        <img
-                                            className="aspect-2/3 w-24 shrink-0 rounded-lg object-cover sm:w-28"
-                                            src={movie.posterPath}
-                                            alt={`${movie.title} 포스터`}
+                                        상세 보기
+                                        <span
+                                            className="size-4 bg-action [mask:url(/icons/arrow-right.svg)_center/contain_no-repeat]"
+                                            aria-hidden="true"
                                         />
-                                        <div className="min-w-0">
-                                            <h3 className="text-base font-semibold">{movie.title}</h3>
-                                            <p className="mt-0.5 text-sm text-[#4b4b4b]">{movie.originalTitle}</p>
-                                            <p className="mt-1 text-[13px] text-[#9a9a9a]">{movie.releaseDate}</p>
-                                            <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-[#4b4b4b]">
-                                                {movie.overview}
-                                            </p>
-                                        </div>
                                     </Link>
-                                </li>
-                            ))}
-                        </ul>
-                    )}
-                </section>
+                                </div>
+                                <BookmarkButton movieId={movie.id} movieTitle={movie.title} />
+                            </article>
+                        </li>
+                    ))}
+                </ul>
             )}
         </main>
     );

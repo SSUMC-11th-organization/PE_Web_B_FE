@@ -1,1 +1,18 @@
 @import "tailwindcss";
+
+/* Figma 디자인 시스템의 색상과 글꼴 */
+@theme {
+  --font-sans: "Pretendard Variable", Pretendard, system-ui, sans-serif;
+
+  --color-surface: #ffffff;
+  --color-page: #f6f7f9;
+  --color-line: #e3e6eb;
+  --color-ink: #17191e;
+  --color-ink-secondary: #606774;
+  --color-ink-tertiary: #969da8;
+  --color-action: #2563eb;
+  --color-action-hover: #1d4ed8;
+  --color-action-pressed: #1748ad;
+  --color-action-disabled: #d9e5ff;
+  --color-danger: #d92d20;
+}

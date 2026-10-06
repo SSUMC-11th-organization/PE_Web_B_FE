@@ -2,7 +2,7 @@ import { Link, useLocation } from "@tanstack/react-router";
 import { cn } from "../../utils/cn";
 
 const navLinkClassName =
-  "text-[15px] whitespace-nowrap transition-colors hover:text-[#1a1a1a]";
+  "text-sm font-bold whitespace-nowrap transition-colors hover:text-ink";
 
 export function Header() {
   const pathname = useLocation({ select: (location) => location.pathname });
@@ -10,24 +10,23 @@ export function Header() {
   const isSearchActive = pathname === "/search";
 
   return (
-    <header className="flex items-center justify-between gap-4 border-b border-[#ebebeb] px-4 py-3.5 sm:px-10">
-      <div className="flex items-center gap-5 sm:gap-8">
-        <Link
-          to="/"
-          className="flex items-center gap-2 text-lg font-bold text-[#1a1a1a]"
-        >
-          <span className="flex size-7 items-center justify-center rounded-[7px] bg-[#1a1a1a]">
-            <img className="size-[18px] invert" src="/icons/movie.svg" alt="" />
+    <header className="flex items-center justify-between gap-4 border-b border-line bg-surface px-4 py-6 sm:px-10 lg:px-20">
+      <div className="flex items-center gap-5 sm:gap-[42px]">
+        <Link to="/" className="flex items-center gap-2.5">
+          <span className="flex size-8 items-center justify-center rounded-lg border-2 border-ink">
+            <img className="size-6" src="/icons/movie.svg" alt="" />
           </span>
-          <span className="hidden sm:inline">UMCine</span>
+          <span className="hidden text-xl font-black tracking-[-0.7px] text-ink sm:inline">
+            UMCine
+          </span>
         </Link>
 
-        <nav className="flex gap-4 sm:gap-6">
+        <nav className="flex items-center gap-4 sm:gap-[30px]">
           <Link
             to="/"
             className={cn(
               navLinkClassName,
-              isMoviesActive ? "font-semibold text-[#1a1a1a]" : "text-[#4b4b4b]",
+              isMoviesActive ? "text-ink underline" : "text-ink-secondary",
             )}
           >
             영화
@@ -36,28 +35,28 @@ export function Header() {
             to="/search"
             className={cn(
               navLinkClassName,
-              isSearchActive ? "font-semibold text-[#1a1a1a]" : "text-[#4b4b4b]",
+              isSearchActive ? "text-ink underline" : "text-ink-secondary",
             )}
           >
             검색
           </Link>
-          <a href="/profile" className={cn(navLinkClassName, "text-[#4b4b4b]")}>
+          <a href="/profile" className={cn(navLinkClassName, "text-ink-secondary")}>
             내 정보
           </a>
         </nav>
       </div>
 
-      <div className="flex items-center gap-2 sm:gap-4">
+      <div className="flex items-center gap-2.5">
         <Link
           to="/search"
-          className="flex size-8 items-center justify-center"
-          aria-label="검색"
+          className="flex size-[42px] items-center justify-center rounded-lg border border-line bg-surface"
+          aria-label="영화 검색"
         >
-          <img className="size-[22px]" src="/icons/search.svg" alt="" />
+          <img className="size-6" src="/icons/search.svg" alt="" />
         </Link>
         <button
           type="button"
-          className="cursor-pointer rounded-lg bg-[#2563eb] px-[18px] py-2 text-[15px] whitespace-nowrap text-white transition-colors hover:bg-[#1d4ed8]"
+          className="h-[42px] cursor-pointer rounded-lg bg-action px-4 text-sm font-extrabold whitespace-nowrap text-white transition-colors hover:bg-action-hover"
         >
           로그인
         </button>
