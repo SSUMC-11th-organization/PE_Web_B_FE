@@ -1,6 +1,7 @@
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useState, type SubmitEvent } from "react";
 import { movies } from "../../data/movies";
+import { BookmarkButton } from "../../components/bookmark-button";
 
 export function SearchPage() {
   const { query } = useSearch({ from: "/search" });
@@ -53,6 +54,7 @@ export function SearchPage() {
               {searchResults.map((movie) => (
                 <li key={movie.id}>
                   <img src={movie.posterPath} alt={`${movie.title} 포스터`} />
+                  <BookmarkButton movieId={movie.id} /> 
                   <h3>{movie.title}</h3>
                   <p>{movie.originalTitle}</p>
                   <p>{movie.releaseDate}</p>
