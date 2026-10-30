@@ -4,9 +4,13 @@ import type { TmdbMovieListItem } from "../../api/movies/models";
 import MovieGrid from "../../components/movies/movie-grid";
 import Pagination from "../../components/movies/pagination";
 
+// TMDB 인기 영화는 수백 페이지라서 버튼은 앞쪽 5페이지까지만 보여 줘요
+const MAX_VISIBLE_PAGES = 5;
+
 export function MovieListPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [movies, setMovies] = useState<TmdbMovieListItem[]>([]);
+  const [totalPages, setTotalPages] = useState(MAX_VISIBLE_PAGES);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -17,8 +21,11 @@ export function MovieListPage() {
       setErrorMessage(null);
 
       try {
-        const response = await getMovies({ page: 1 });
-        if (!ignore) setMovies(response.results);
+        const response = await getMovies({ page: currentPage });
+        if (!ignore) {
+          setMovies(response.results);
+          setTotalPages(Math.min(response.total_pages, MAX_VISIBLE_PAGES));
+        }
       } catch {
         if (!ignore) setErrorMessage("영화 목록을 불러오지 못했어요.");
       } finally {
@@ -31,7 +38,7 @@ export function MovieListPage() {
     return () => {
       ignore = true;
     };
-  }, []);
+  }, [currentPage]);
 
   return (
     <main className="flex flex-1 flex-col gap-5 px-4 py-6 sm:px-10 lg:px-20">
@@ -42,14 +49,18 @@ export function MovieListPage() {
         <p className="py-20 text-center text-sm text-ink-tertiary">영화 목록을 불러오는 중이에요.</p>
       ) : errorMessage ? (
         <p className="py-20 text-center text-sm text-ink-tertiary">{errorMessage}</p>
+      ) : movies.length === 0 ? (
+        <p className="py-20 text-center text-sm text-ink-tertiary">표시할 영화가 없어요.</p>
       ) : (
         <MovieGrid movies={movies} />
       )}
-      <Pagination
-        currentPage={currentPage}
-        totalPages={5}
-        onPageChange={setCurrentPage}
-      />
+      {totalPages > 0 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
+      )}
     </main>
   );
 }
