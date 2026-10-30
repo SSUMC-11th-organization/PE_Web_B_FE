@@ -1,13 +1,12 @@
 import { Link } from '@tanstack/react-router'
 import type { Movie } from '../../types/movie'
-import { cn } from '../../utils/cn'
+import BookmarkButton from './bookmark-button'
 
 interface MovieCardProps {
   movie: Movie
-  onToggleBookmark: (id: number) => void
 }
 
-function MovieCard({ movie, onToggleBookmark }: MovieCardProps) {
+function MovieCard({ movie }: MovieCardProps) {
   return (
     <article className="relative">
       <Link
@@ -28,24 +27,7 @@ function MovieCard({ movie, onToggleBookmark }: MovieCardProps) {
         <p className="text-xs font-normal text-text-tertiary">{movie.releaseDate}</p>
       </Link>
       {/* 버튼을 링크 안에 넣지 않도록 카드 위에 겹쳐 배치해요. */}
-      <button
-        type="button"
-        className={cn(
-          'absolute top-2 right-2 flex size-[34px] cursor-pointer items-center justify-center rounded-lg border p-0',
-          movie.isBookmarked
-            ? 'border-action-primary bg-action-primary'
-            : 'border-white bg-text-primary',
-        )}
-        aria-pressed={movie.isBookmarked}
-        aria-label={movie.isBookmarked ? '북마크 해제' : '북마크 추가'}
-        onClick={() => onToggleBookmark(movie.id)}
-      >
-        <img
-          className="size-5 invert brightness-200"
-          src={movie.isBookmarked ? '/icons/bookmark.svg' : '/icons/bookmark-outline.svg'}
-          alt=""
-        />
-      </button>
+      <BookmarkButton className="absolute top-2 right-2" movieId={movie.id} />
     </article>
   )
 }
