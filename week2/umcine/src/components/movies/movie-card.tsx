@@ -1,12 +1,15 @@
 import { Link } from "@tanstack/react-router";
-import type { Movie } from "../../types/movie";
+import type { TmdbMovieListItem } from "../../api/movies/models";
+import { getTmdbPosterUrl } from "../../utils/movies/tmdb-image";
 import { BookmarkButton } from "./bookmark-button";
 
 interface MovieCardProps {
-  movie: Movie;
+  movie: TmdbMovieListItem;
 }
 
 export default function MovieCard({ movie }: MovieCardProps) {
+  const posterUrl = getTmdbPosterUrl(movie.poster_path);
+
   return (
     <article className="flex flex-col gap-1">
       <div className="relative aspect-[241/274] overflow-hidden rounded-[10px] bg-page">
@@ -15,11 +18,13 @@ export default function MovieCard({ movie }: MovieCardProps) {
           params={{ movieId: String(movie.id) }}
           className="block size-full"
         >
-          <img
-            className="block size-full object-cover transition-transform duration-300 hover:scale-105"
-            src={movie.posterPath}
-            alt={`${movie.title} 포스터`}
-          />
+          {posterUrl && (
+            <img
+              className="block size-full object-cover transition-transform duration-300 hover:scale-105"
+              src={posterUrl}
+              alt={`${movie.title} 포스터`}
+            />
+          )}
         </Link>
 
         <BookmarkButton
@@ -34,7 +39,7 @@ export default function MovieCard({ movie }: MovieCardProps) {
           {movie.title}
         </Link>
       </h3>
-      <p className="text-xs text-ink-tertiary">{movie.releaseDate}</p>
+      <p className="text-xs text-ink-tertiary">{movie.release_date}</p>
     </article>
   );
 }
