@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import type { Movie } from "../../types/movie";
 import { useBookmarkStore } from "../../stores/bookmark-store";
 import { cn } from "../../utils/cn";
+import MoviePoster from "./movie-poster";
 
 interface MovieCardProps {
   movie: Movie;
@@ -25,9 +26,9 @@ function MovieCard({ movie }: MovieCardProps) {
         className="flex flex-col gap-3"
       >
         <div className="aspect-[2/3] w-full overflow-hidden rounded-xl bg-line">
-          <img
-            className="size-full object-cover"
-            src={movie.posterPath}
+          <MoviePoster
+            className="size-full"
+            src={movie.posterUrl}
             alt={movie.title}
             loading="lazy"
           />

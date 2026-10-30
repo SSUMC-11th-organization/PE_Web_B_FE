@@ -1,9 +1,14 @@
 import { useState } from "react";
 import { getRouteApi, Link } from "@tanstack/react-router";
-import { movies } from "../../data/movies";
+import { isHTTPError } from "ky";
+import { getMovieDetail } from "../../apis/movies";
+import { useAsync } from "../../hooks/use-async";
 import { useBookmarkStore } from "../../stores/bookmark-store";
 import { cn } from "../../utils/cn";
-import type { Movie } from "../../types/movie";
+import MoviePoster from "../../components/movies/movie-poster";
+import LoadingState from "../../components/status/loading-state";
+import ErrorState from "../../components/status/error-state";
+import type { MovieDetail as MovieDetailData } from "../../types/movie";
 
 const route = getRouteApi("/movies/$movieId");
 
@@ -11,20 +16,52 @@ const STARS = [1, 2, 3, 4, 5];
 
 function MovieDetailPage() {
   const { movieId } = route.useParams();
-  const movie = movies.find((m) => String(m.id) === movieId);
+  const id = Number(movieId);
 
-  if (!movie) {
+  if (!Number.isInteger(id) || id <= 0) {
+    return <MovieNotFound />;
+  }
+
+  return <MovieDetailLoader key={id} movieId={id} />;
+}
+
+function MovieDetailLoader({ movieId }: { movieId: number }) {
+  const result = useAsync((signal) => getMovieDetail(movieId, signal), [movieId]);
+
+  if (result.status === "loading") {
     return (
-      <main className="flex flex-1 items-center justify-center py-40">
-        <p className="text-lg text-ink-2">영화를 찾을 수 없어요.</p>
+      <main className="flex flex-1 flex-col">
+        <LoadingState />
       </main>
     );
   }
 
-  return <MovieDetail key={movie.id} movie={movie} />;
+  if (result.status === "error") {
+    if (isHTTPError(result.error) && result.error.response.status === 404) {
+      return <MovieNotFound />;
+    }
+    return (
+      <main className="flex flex-1 flex-col">
+        <ErrorState error={result.error} onRetry={result.retry} />
+      </main>
+    );
+  }
+
+  return <MovieDetail movie={result.data} />;
 }
 
-function MovieDetail({ movie }: { movie: Movie }) {
+function MovieNotFound() {
+  return (
+    <main className="flex flex-1 flex-col items-center justify-center gap-4 py-40">
+      <p className="text-lg text-ink-2">영화를 찾을 수 없어요.</p>
+      <Link to="/" className="text-sm font-bold text-primary">
+        영화 목록으로 돌아가기
+      </Link>
+    </main>
+  );
+}
+
+function MovieDetail({ movie }: { movie: MovieDetailData }) {
   const bookmarked = useBookmarkStore((state) =>
     state.bookmarkedMovieIds.includes(movie.id),
   );
@@ -35,11 +72,15 @@ function MovieDetail({ movie }: { movie: Movie }) {
   return (
     <main className="flex flex-1 flex-col">
       <section className="relative h-[360px] w-full overflow-hidden">
-        <img
-          src={movie.backdropPath}
-          alt=""
-          className="pointer-events-none absolute inset-0 size-full object-cover"
-        />
+        {movie.backdropUrl ? (
+          <img
+            src={movie.backdropUrl}
+            alt=""
+            className="pointer-events-none absolute inset-0 size-full object-cover"
+          />
+        ) : (
+          <div className="absolute inset-0 bg-ink" />
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-black/30" />
         <div className="absolute inset-0 mx-auto flex max-w-[1440px] flex-col justify-between px-20 py-6 text-white">
           <Link to="/" className="flex items-center gap-1 text-[13px] font-bold">
@@ -62,12 +103,16 @@ function MovieDetail({ movie }: { movie: Movie }) {
 
       <div className="mx-auto flex w-full max-w-[1440px] items-start gap-8 px-20 py-6">
         <div className="h-[286px] w-[200px] shrink-0 overflow-hidden rounded-[10px] bg-page shadow-[0_12px_30px_rgba(12,15,20,0.12)]">
-          <img src={movie.posterPath} alt={movie.title} className="size-full object-cover" />
+          <MoviePoster src={movie.posterUrl} alt={movie.title} className="size-full" />
         </div>
 
         <section className="flex min-w-0 flex-1 flex-col items-start gap-3">
-          <h2 className="text-[21px] font-bold tracking-[-0.63px]">{movie.tagline}</h2>
-          <p className="text-sm leading-6 text-ink-2">{movie.overview}</p>
+          {movie.tagline && (
+            <h2 className="text-[21px] font-bold tracking-[-0.63px]">{movie.tagline}</h2>
+          )}
+          <p className="text-sm leading-6 text-ink-2">
+            {movie.overview || "등록된 줄거리가 없어요."}
+          </p>
           <button
             type="button"
             aria-pressed={bookmarked}
