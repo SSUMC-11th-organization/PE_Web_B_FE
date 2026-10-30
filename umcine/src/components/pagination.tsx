@@ -12,8 +12,22 @@ const navButtonClass = cn(
   'border border-border-default bg-bg-surface disabled:cursor-not-allowed disabled:opacity-40',
 )
 
+// TMDB는 페이지가 최대 500개까지 있으므로 현재 페이지 주변 5개만 보여 줘요.
+const VISIBLE_PAGE_COUNT = 5
+
+function getVisiblePages(currentPage: number, totalPages: number) {
+  const count = Math.min(VISIBLE_PAGE_COUNT, totalPages)
+  const start = Math.min(
+    Math.max(currentPage - Math.floor(count / 2), 1),
+    totalPages - count + 1,
+  )
+  return Array.from({ length: count }, (_, index) => start + index)
+}
+
 function Pagination({ currentPage, totalPages, onPageChange }: PaginationProps) {
-  const pages = Array.from({ length: totalPages }, (_, index) => index + 1)
+  if (totalPages <= 1) return null
+
+  const pages = getVisiblePages(currentPage, totalPages)
 
   return (
     <nav className="mt-8 flex items-center justify-center gap-3" aria-label="페이지네이션">
@@ -46,7 +60,7 @@ function Pagination({ currentPage, totalPages, onPageChange }: PaginationProps) 
       <button
         type="button"
         className={navButtonClass}
-        disabled={currentPage === totalPages}
+        disabled={currentPage >= totalPages}
         aria-label="다음 페이지"
         onClick={() => onPageChange(currentPage + 1)}
       >

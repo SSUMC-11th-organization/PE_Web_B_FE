@@ -1,9 +1,10 @@
 import { Link } from '@tanstack/react-router'
-import type { Movie } from '../../types/movie'
+import type { MovieCardItem } from '../../types/movie'
 import BookmarkButton from './bookmark-button'
+import MoviePoster from './movie-poster'
 
 interface MovieCardProps {
-  movie: Movie
+  movie: MovieCardItem
 }
 
 function MovieCard({ movie }: MovieCardProps) {
@@ -14,13 +15,12 @@ function MovieCard({ movie }: MovieCardProps) {
         to="/movies/$movieId"
         params={{ movieId: String(movie.id) }}
       >
-        <div className="h-[274px] w-full overflow-hidden rounded-[10px] bg-border-default">
-          <img
-            className="size-full object-cover transition-transform duration-300 group-hover:scale-105"
-            src={movie.posterPath}
-            alt={movie.title}
-          />
-        </div>
+        <MoviePoster
+          className="h-[274px] w-full rounded-[10px]"
+          imageClassName="transition-transform duration-300 group-hover:scale-105"
+          src={movie.posterUrl}
+          alt={movie.title}
+        />
         <h3 className="mt-[5px] truncate text-sm leading-none font-extrabold text-text-primary">
           {movie.title}
         </h3>
