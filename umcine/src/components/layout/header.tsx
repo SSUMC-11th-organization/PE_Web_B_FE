@@ -30,9 +30,14 @@ export function Header() {
           >
             검색
           </Link>
-          <a className={`${menuItemClass} ${inactiveMenuProps.className}`} href="#">
+          <Link
+            className={menuItemClass}
+            activeProps={activeMenuProps}
+            inactiveProps={inactiveMenuProps}
+            to="/my"
+          >
             내 정보
-          </a>
+          </Link>
         </nav>
       </div>
       <div className="flex items-center gap-2">
