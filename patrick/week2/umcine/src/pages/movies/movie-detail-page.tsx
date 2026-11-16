@@ -1,9 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "@tanstack/react-router";
 import { movieQueries } from "../../api/movies/movie-queries";
-import { BookmarkButton } from "../../components/bookmark-button";
 import { ErrorMessage } from "../../components/error-message";
+import { FavoriteButton } from "../../components/favorite-button";
 import { TmdbFooter } from "../../components/layout/tmdb-footer";
+import { MovieRatingSection } from "../../components/movies/movie-rating-section";
 import { getMovieDetailErrorMessage } from "../../utils/movies/get-movie-detail-error-message";
 import {
   getTmdbBackdropUrl,
@@ -65,7 +66,7 @@ export function MovieDetailPage() {
         ) : (
           <div>이미지 없음</div>
         )}
-        <BookmarkButton movieId={movie.id} />
+        <FavoriteButton movieId={movie.id} />
         <h1>{movie.title}</h1>
         <p>{movie.original_title}</p>
         <p>{movie.release_date}</p>
@@ -73,6 +74,7 @@ export function MovieDetailPage() {
         <p>{formatRuntime(movie.runtime)}</p>
         <h2>{movie.tagline}</h2>
         <p>{movie.overview}</p>
+        <MovieRatingSection movieId={movie.id} />
       </main>
       <TmdbFooter />
     </>
