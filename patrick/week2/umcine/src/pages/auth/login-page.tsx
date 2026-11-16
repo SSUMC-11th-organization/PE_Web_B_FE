@@ -1,18 +1,29 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
+import { useLoginMutation } from "@/hooks/use-login-mutation";
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 type LoginFormKey = "email" | "password";
 
 export function LoginPage() {
   const [form, setForm] = useState({ email: "", password: "" });
+  const loginMutation = useLoginMutation();
+  const canSubmit =
+    EMAIL_REGEX.test(form.email.trim()) && form.password.length > 0;
 
   const handleChange = (key: LoginFormKey, value: string) => {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
-  // 이번 주차는 퍼블리싱만 하므로 로그인 API는 호출하지 않아요.
   const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!canSubmit || loginMutation.isPending) return;
+
+    loginMutation.mutate({
+      email: form.email.trim(),
+      password: form.password,
+    });
   };
 
   return (
@@ -90,9 +101,10 @@ export function LoginPage() {
 
         <button
           type="submit"
-          className="w-full cursor-pointer rounded-lg border-0 bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-700"
+          disabled={!canSubmit || loginMutation.isPending}
+          className="w-full cursor-pointer rounded-lg border-0 bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          로그인
+          {loginMutation.isPending ? "로그인 중" : "로그인"}
         </button>
 
         <p className="mt-4 text-center text-sm text-gray-500">
