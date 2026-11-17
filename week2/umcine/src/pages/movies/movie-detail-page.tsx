@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { isHTTPError } from "ky";
 import { getMovieDetail } from "../../api/movies/get-movie-detail";
 import { BookmarkButton } from "../../components/movies/bookmark-button";
+import { MyRatingSection } from "../../components/movies/my-rating-section";
 import { getMovieDetailErrorMessage } from "../../utils/movies/get-movie-detail-error-message";
 import { getTmdbBackdropUrl, getTmdbPosterUrl } from "../../utils/movies/tmdb-image";
 
@@ -104,6 +105,8 @@ export function MovieDetailPage() {
                     <BookmarkButton movieId={movie.id} movieTitle={movie.title} variant="label" />
                 </div>
             </section>
+
+            <MyRatingSection movieId={movie.id} />
         </main>
     );
 }
