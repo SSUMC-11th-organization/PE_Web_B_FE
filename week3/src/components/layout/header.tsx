@@ -1,5 +1,7 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { cn } from "../../utils/cn";
+import { useMeQuery } from "../../hooks/use-me-query";
+import { useAuthStore } from "../../stores/auth-store";
 
 function Header() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -7,9 +9,16 @@ function Header() {
 
   const isMovies = pathname === "/" || pathname.startsWith("/movies");
   const isSearch = pathname.startsWith("/search");
+  const isMy = pathname.startsWith("/my");
+
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const meQuery = useMeQuery();
 
   const navClass = (active: boolean) =>
-    cn("text-sm font-bold text-ink-2", active && "text-ink underline underline-offset-4");
+    cn(
+      "text-sm font-bold text-ink-2",
+      active && "text-ink underline underline-offset-4",
+    );
 
   return (
     <header className="flex items-center justify-between border-b border-line bg-surface px-20 py-6">
@@ -28,7 +37,9 @@ function Header() {
           <Link to="/search" className={navClass(isSearch)}>
             검색
           </Link>
-          <span className={navClass(false)}>내 정보</span>
+          <Link to="/my" className={navClass(isMy)}>
+            내 정보
+          </Link>
         </nav>
       </div>
 
@@ -41,12 +52,23 @@ function Header() {
         >
           <img src="/icons/movie-icons/search.svg" alt="" className="size-6" />
         </button>
-        <button
-          type="button"
-          className="h-[42px] rounded-lg bg-primary px-4 text-sm font-extrabold text-white hover:bg-blue-700"
-        >
-          로그인
-        </button>
+        {!accessToken ? (
+          <Link
+            to="/login"
+            className="flex h-[42px] items-center rounded-lg bg-primary px-4 text-sm font-extrabold text-white hover:bg-blue-700"
+          >
+            로그인
+          </Link>
+        ) : meQuery.isLoading ? (
+          <span className="h-[42px] w-24 animate-pulse rounded-lg bg-line" />
+        ) : (
+          <Link
+            to="/my"
+            className="flex h-[42px] items-center rounded-lg bg-primary px-4 text-sm font-extrabold text-white hover:bg-blue-700"
+          >
+            마이페이지
+          </Link>
+        )}
       </div>
     </header>
   );

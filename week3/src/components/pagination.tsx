@@ -19,7 +19,7 @@ const getVisiblePages = (page: number, totalPages: number) => {
 };
 
 function Pagination({ page, totalPages, onPageChange }: PaginationProps) {
-  if (totalPages <= 1) return null;
+  if (totalPages < 1) return null;
 
   return (
     <nav aria-label="페이지 이동" className="mt-12 flex items-center justify-center gap-1.5">
