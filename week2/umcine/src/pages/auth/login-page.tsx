@@ -1,7 +1,7 @@
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { useState, type SubmitEvent } from "react";
-import { useAuthStore } from "../../stores/auth-store";
-import { EMAIL_REGEX } from "../../utils/members/validation";
+import { useLoginMutation } from "@/hooks/use-login-mutation";
+import { EMAIL_REGEX } from "@/utils/members/validation";
 
 const fieldClassName =
     "flex h-12 items-center gap-2.5 rounded-lg border border-line bg-surface px-3.5 focus-within:border-ink";
@@ -9,8 +9,7 @@ const inputClassName =
     "min-w-0 flex-1 text-sm text-ink outline-none placeholder:text-ink-tertiary";
 
 export function LoginPage() {
-    const navigate = useNavigate();
-    const login = useAuthStore((state) => state.login);
+    const loginMutation = useLoginMutation();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
 
@@ -18,11 +17,12 @@ export function LoginPage() {
 
     function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
         event.preventDefault();
-        if (!canSubmit) return;
+        if (!canSubmit || loginMutation.isPending) return;
 
-        // 로그인 API를 연결하기 전이라 비밀번호는 확인하지 않아요.
-        login(email.trim());
-        navigate({ to: "/" });
+        loginMutation.mutate({
+            email: email.trim(),
+            password,
+        });
     }
 
     return (
@@ -64,10 +64,10 @@ export function LoginPage() {
 
                 <button
                     type="submit"
-                    disabled={!canSubmit}
+                    disabled={!canSubmit || loginMutation.isPending}
                     className="mt-7 h-12 cursor-pointer rounded-lg bg-action text-sm font-extrabold text-white transition-colors hover:bg-action-hover active:bg-action-pressed disabled:cursor-not-allowed disabled:bg-action-disabled"
                 >
-                    로그인
+                    {loginMutation.isPending ? "로그인 중" : "로그인"}
                 </button>
 
                 <p className="mt-6 text-center text-[13px] text-ink-tertiary">

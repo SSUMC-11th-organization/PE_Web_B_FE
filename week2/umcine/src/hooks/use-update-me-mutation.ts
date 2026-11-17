@@ -1,0 +1,21 @@
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { updateMe } from "../api/members/update-me";
+import type { MemberInfo } from "../api/members/me";
+import { memberKeys } from "../api/query-keys";
+import { getApiErrorMessage } from "../api/get-api-error-message";
+
+export function useUpdateMeMutation() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: updateMe,
+        onSuccess: (response) => {
+            // 응답에 수정된 내 정보가 담겨 있어서 다시 조회하지 않고 캐시를 바로 바꿔요.
+            queryClient.setQueryData<MemberInfo>(memberKeys.me, response.result);
+            alert("내 정보 수정에 성공했어요.");
+        },
+        onError: (error) => {
+            alert(getApiErrorMessage(error, "내 정보 수정에 실패했어요. 다시 시도해 주세요."));
+        },
+    });
+}
