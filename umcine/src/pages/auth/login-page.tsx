@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useState, type SubmitEvent } from "react";
 import { primaryButtonClass } from "../../components/auth/button-styles";
 import { FormField } from "../../components/auth/form-field";
+import { useLoginMutation } from "../../hooks/use-login-mutation";
 import { isValidEmail } from "../../utils/auth/validation";
 
 const DEFAULT_FORM = {
@@ -11,9 +12,9 @@ const DEFAULT_FORM = {
 
 type LoginFormKey = keyof typeof DEFAULT_FORM;
 
-// 로그인 화면 퍼블리싱이에요. 로그인 API 연동은 8주차에서 진행해요.
 export function LoginPage() {
   const [form, setForm] = useState(DEFAULT_FORM);
+  const loginMutation = useLoginMutation();
 
   const isEmailValid = isValidEmail(form.email);
   const isPasswordFilled = form.password.length > 0;
@@ -26,9 +27,12 @@ export function LoginPage() {
 
   const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!canSubmit) return;
-    // 8주차에서 로그인 API 요청으로 교체해요.
-    alert(`${form.email.trim()} 계정으로 로그인을 요청할 거예요. (8주차에서 연결)`);
+    if (!canSubmit || loginMutation.isPending) return;
+
+    loginMutation.mutate({
+      email: form.email.trim(),
+      password: form.password,
+    });
   };
 
   return (
@@ -59,8 +63,12 @@ export function LoginPage() {
             onChange={(e) => handleChangeField("password", e.target.value)}
           />
 
-          <button className={`${primaryButtonClass} mt-2`} type="submit" disabled={!canSubmit}>
-            로그인
+          <button
+            className={`${primaryButtonClass} mt-2`}
+            type="submit"
+            disabled={!canSubmit || loginMutation.isPending}
+          >
+            {loginMutation.isPending ? "로그인 중" : "로그인"}
           </button>
         </form>
 

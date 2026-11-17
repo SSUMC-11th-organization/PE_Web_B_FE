@@ -4,6 +4,7 @@ import { movieQueries } from "../../api/movies/queries";
 import StatusMessage from "../../components/common/status-message";
 import BookmarkButton from "../../components/movies/bookmark-button";
 import MoviePoster from "../../components/movies/movie-poster";
+import { MyRatingSection } from "../../components/movies/my-rating-section";
 import { formatRuntime } from "../../utils/movies/format-runtime";
 import { getMovieDetailErrorMessage } from "../../utils/movies/get-movie-detail-error-message";
 import { getTmdbBackdropUrl, getTmdbPosterUrl } from "../../utils/movies/tmdb-image";
@@ -84,7 +85,8 @@ export function MovieDetailPage() {
           <div className="flex max-w-[720px] flex-col gap-2 text-white">
             <div className="flex items-center gap-3">
               <h1 className="text-[38px] leading-[44px] font-bold tracking-[-1.71px]">{movie.title}</h1>
-              <BookmarkButton movieId={movie.id} />
+              {/* 상세 화면은 GET /favorites/{movieId}로 이 영화의 즐겨찾기 여부만 확인해요. */}
+              <BookmarkButton movieId={movie.id} source="status" />
             </div>
             <p className="text-lg text-white/70">{movie.original_title}</p>
             <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-white/80">
@@ -98,6 +100,7 @@ export function MovieDetailPage() {
             <p className="text-base leading-relaxed text-white/80">
               {movie.overview || "줄거리 정보가 없어요."}
             </p>
+            <MyRatingSection movieId={movie.id} />
           </div>
         </div>
       </div>
