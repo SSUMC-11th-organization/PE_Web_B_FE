@@ -1,23 +1,31 @@
 import { useState } from "react";
-
-// 퍼블리싱용 초기값 (API 연동은 이후 주차)
-const INITIAL_FORM = {
-  nickname: "gs0428",
-  email: "gwangsoo@cinemalab.kr",
-};
-
-type EditFormKey = keyof typeof INITIAL_FORM;
+import { useQuery } from "@tanstack/react-query";
+import { getMe } from "@/api/members/me";
+import { useUpdateMeMutation } from "@/hooks/use-update-me-mutation";
+import { useAuthStore } from "@/stores/auth-store";
 
 export function MyInfoEditPage() {
-  const [form, setForm] = useState(INITIAL_FORM);
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const meQuery = useQuery({
+    queryKey: ["members", "me"],
+    queryFn: getMe,
+    enabled: Boolean(accessToken),
+    staleTime: 5 * 60 * 1000,
+    retry: false,
+  });
+  const updateMeMutation = useUpdateMeMutation();
 
-  const handleChange = (key: EditFormKey, value: string) => {
-    setForm((prev) => ({ ...prev, [key]: value }));
-  };
+  // 사용자가 입력하기 전에는 서버에서 받은 닉네임을 보여줘요
+  const [nicknameInput, setNicknameInput] = useState<string | null>(null);
+  const nicknameValue = nicknameInput ?? meQuery.data?.nickname ?? "";
+  const nickname = nicknameValue.trim();
+  const canSubmit = nickname.length >= 2 && nickname.length <= 12;
 
-  // 이번 주차는 퍼블리싱만 하므로 저장 API는 호출하지 않아요.
   const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!canSubmit || updateMeMutation.isPending) return;
+
+    updateMeMutation.mutate({ nickname });
   };
 
   return (
@@ -34,9 +42,10 @@ export function MyInfoEditPage() {
           </div>
           <button
             type="submit"
-            className="cursor-pointer rounded-lg border-0 bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+            disabled={!canSubmit || updateMeMutation.isPending}
+            className="cursor-pointer rounded-lg border-0 bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            변경사항 저장
+            {updateMeMutation.isPending ? "저장 중" : "변경사항 저장"}
           </button>
         </div>
 
@@ -92,8 +101,8 @@ export function MyInfoEditPage() {
                 <input
                   id="nickname"
                   type="text"
-                  value={form.nickname}
-                  onChange={(e) => handleChange("nickname", e.target.value)}
+                  value={nicknameValue}
+                  onChange={(e) => setNicknameInput(e.target.value)}
                   className="w-full bg-transparent text-sm outline-none"
                 />
                 <button
@@ -112,13 +121,13 @@ export function MyInfoEditPage() {
               >
                 이메일
               </label>
-              <div className="rounded-lg border border-gray-200 bg-white px-3 py-2.5 focus-within:border-blue-600">
+              <div className="rounded-lg border border-gray-200 bg-white px-3 py-2.5">
                 <input
                   id="email"
                   type="email"
-                  value={form.email}
-                  onChange={(e) => handleChange("email", e.target.value)}
-                  className="w-full bg-transparent text-sm outline-none"
+                  value={meQuery.data?.email ?? ""}
+                  readOnly
+                  className="w-full bg-transparent text-sm text-gray-500 outline-none"
                 />
               </div>
             </div>

@@ -1,18 +1,31 @@
 import { Link } from "@tanstack/react-router";
-
-// 퍼블리싱용 더미 데이터 (API 연동은 이후 주차)
-const MY_INFO = {
-  nickname: "gs0428",
-  email: "gwangsoo@cinemalab.kr",
-};
-
-const FAVORITES = [
-  { id: 1, title: "스파이더맨: 브랜드 뉴 데이", releaseDate: "2026.07.29" },
-  { id: 2, title: "오디세이", releaseDate: "2026.08.05" },
-  { id: 3, title: "미니언즈 & 몬스터즈", releaseDate: "2026.07.15" },
-];
+import { useQueries, useQuery } from "@tanstack/react-query";
+import { getMe } from "@/api/members/me";
+import { favoriteQueries } from "@/api/favorites/favorite-queries";
+import { movieQueries } from "@/api/movies/movie-queries";
+import { ErrorMessage } from "@/components/error-message";
+import { getTmdbPosterUrl } from "@/utils/movies/tmdb-image";
+import { useAuthStore } from "@/stores/auth-store";
 
 export function MyInfoPage() {
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const meQuery = useQuery({
+    queryKey: ["members", "me"],
+    queryFn: getMe,
+    enabled: Boolean(accessToken),
+    staleTime: 5 * 60 * 1000,
+    retry: false,
+  });
+
+  // 1) 즐겨찾기 목록: 서버는 movieId만 알려줘요
+  const favoritesQuery = useQuery(favoriteQueries.list());
+  const favorites = favoritesQuery.data ?? [];
+
+  // 2) 각 movieId로 TMDB에서 제목과 포스터를 가져와요
+  const movieResults = useQueries({
+    queries: favorites.map((favorite) => movieQueries.detail(favorite.movieId)),
+  });
+
   return (
     <div className="mx-auto w-full max-w-5xl px-12 pb-16">
       <div className="flex items-center justify-between py-4">
@@ -43,13 +56,13 @@ export function MyInfoPage() {
             <div>
               <dt className="text-xs text-gray-400">닉네임</dt>
               <dd className="m-0 mt-1 text-sm font-bold text-gray-900">
-                {MY_INFO.nickname}
+                {meQuery.data?.nickname ?? "-"}
               </dd>
             </div>
             <div>
               <dt className="text-xs text-gray-400">이메일</dt>
               <dd className="m-0 mt-1 text-sm font-bold text-gray-900">
-                {MY_INFO.email}
+                {meQuery.data?.email ?? "-"}
               </dd>
             </div>
           </dl>
@@ -58,25 +71,54 @@ export function MyInfoPage() {
 
       <section className="border-t border-gray-200 py-6">
         <h2 className="m-0 mb-4 text-sm font-bold text-gray-900">내 즐겨찾기</h2>
-        <ul className="m-0 grid list-none grid-cols-2 gap-6 p-0 sm:grid-cols-3 md:grid-cols-5">
-          {FAVORITES.map((movie) => (
-            <li key={movie.id} className="flex flex-col gap-2">
-              <div className="flex aspect-[2/3] w-full items-center justify-center rounded-2xl bg-gray-200 text-sm text-gray-500">
-                이미지 없음
-              </div>
-              <h3 className="m-0 text-sm font-bold leading-[1.35]">
-                {movie.title}
-              </h3>
-              <p className="m-0 text-xs text-gray-400">{movie.releaseDate}</p>
-            </li>
-          ))}
-        </ul>
 
-        <div className="mt-8 flex justify-center">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-900 text-xs font-semibold text-white">
-            1
-          </span>
-        </div>
+        {favoritesQuery.isPending ? (
+          <p className="m-0 text-sm text-gray-500">
+            즐겨찾기를 불러오는 중이에요.
+          </p>
+        ) : favoritesQuery.isError ? (
+          <ErrorMessage
+            message="즐겨찾기를 불러오지 못했어요."
+            onRetry={() => favoritesQuery.refetch()}
+          />
+        ) : favorites.length === 0 ? (
+          <p className="m-0 text-sm text-gray-500">즐겨찾기한 영화가 없어요.</p>
+        ) : (
+          <ul className="m-0 grid list-none grid-cols-2 gap-6 p-0 sm:grid-cols-3 md:grid-cols-5">
+            {favorites.map((favorite, index) => {
+              const movie = movieResults[index]?.data;
+              const posterUrl = movie ? getTmdbPosterUrl(movie.poster_path) : null;
+
+              return (
+                <li key={favorite.favoriteId} className="flex flex-col gap-2">
+                  <Link
+                    to="/movies/$movieId"
+                    params={{ movieId: String(favorite.movieId) }}
+                    className="flex flex-col gap-2 text-inherit no-underline"
+                  >
+                    {posterUrl ? (
+                      <img
+                        src={posterUrl}
+                        alt={movie?.title}
+                        className="aspect-[2/3] w-full rounded-2xl bg-gray-200 object-cover"
+                      />
+                    ) : (
+                      <div className="flex aspect-[2/3] w-full items-center justify-center rounded-2xl bg-gray-200 text-sm text-gray-500">
+                        {movie ? "이미지 없음" : "불러오는 중"}
+                      </div>
+                    )}
+                    <h3 className="m-0 text-sm font-bold leading-[1.35]">
+                      {movie?.title ?? "영화 정보를 불러오는 중"}
+                    </h3>
+                  </Link>
+                  <p className="m-0 text-xs text-gray-400">
+                    {movie?.release_date ?? ""}
+                  </p>
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </section>
     </div>
   );
