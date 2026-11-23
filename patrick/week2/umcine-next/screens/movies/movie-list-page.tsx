@@ -1,0 +1,105 @@
+"use client";
+
+import { useQuery } from "@tanstack/react-query";
+import { useRouter, useSearchParams } from "next/navigation";
+import type { ReactNode } from "react";
+import { movieQueries } from "../../api/movies/movie-queries";
+import { ErrorMessage } from "../../components/error-message";
+import { MovieGrid } from "../../components/movies/movie-grid";
+import { Pagination } from "../../components/movies/pagination";
+import { TmdbFooter } from "../../components/layout/tmdb-footer";
+import { useViewSettingsStore } from "../../stores/view-settings-store";
+import { cn } from "../../utils/cn";
+import { toMovieCardItem } from "../../utils/movies/movie-adapter";
+
+const TMDB_MAX_PAGE = 500;
+
+export function MovieListPage() {
+  // 주소의 ?page=2 값을 읽어요. 올바른 숫자가 아니면 1페이지로 봐요.
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pageParam = Number(searchParams.get("page"));
+  const page = Number.isInteger(pageParam) && pageParam > 0 ? pageParam : 1;
+
+  const cardSize = useViewSettingsStore((state) => state.cardSize);
+  const setCardSize = useViewSettingsStore((state) => state.setCardSize);
+
+  const moviesQuery = useQuery(movieQueries.list(page));
+
+  const movies = moviesQuery.data?.results.map(toMovieCardItem) ?? [];
+  const totalPages = Math.min(moviesQuery.data?.total_pages ?? 0, TMDB_MAX_PAGE);
+
+  function handlePageChange(nextPage: number) {
+    router.push(nextPage === 1 ? "/" : `/?page=${nextPage}`);
+  }
+
+  let content: ReactNode;
+  if (moviesQuery.isPending) {
+    content = <p className="text-gray-500">영화 목록을 불러오는 중이에요.</p>;
+  } else if (moviesQuery.isError) {
+    content = (
+      <ErrorMessage
+        message="영화 목록을 불러오지 못했어요."
+        onRetry={() => moviesQuery.refetch()}
+      />
+    );
+  } else if (movies.length === 0) {
+    content = <p className="text-gray-500">조건에 맞는 영화가 없어요.</p>;
+  } else {
+    content = <MovieGrid movies={movies} />;
+  }
+
+  return (
+    <>
+      <p className="m-0 px-4 py-2.5 bg-gray-900 text-white text-center text-sm font-bold tracking-[0.02em]">
+        웹B 노형원
+      </p>
+      <div className="min-h-screen px-8 pt-6 pb-12">
+        <div className="max-w-7xl mx-auto bg-white rounded-3xl shadow-[0_8px_32px_rgba(15,23,42,0.06)] overflow-hidden">
+          <section className="px-12 pt-2 pb-8">
+            <div className="flex items-center justify-between mb-6">
+              <h1 className="m-0 text-[32px] font-bold tracking-[-0.04em]">
+                영화 목록
+              </h1>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setCardSize("small")}
+                  aria-pressed={cardSize === "small"}
+                  className={cn(
+                    "rounded-lg px-3 py-1.5 text-sm font-semibold",
+                    cardSize === "small"
+                      ? "bg-gray-900 text-white"
+                      : "bg-gray-100 text-gray-500",
+                  )}
+                >
+                  작게
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCardSize("large")}
+                  aria-pressed={cardSize === "large"}
+                  className={cn(
+                    "rounded-lg px-3 py-1.5 text-sm font-semibold",
+                    cardSize === "large"
+                      ? "bg-gray-900 text-white"
+                      : "bg-gray-100 text-gray-500",
+                  )}
+                >
+                  크게
+                </button>
+              </div>
+            </div>
+            {content}
+          </section>
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
+          <TmdbFooter />
+        </div>
+      </div>
+    </>
+  );
+}
