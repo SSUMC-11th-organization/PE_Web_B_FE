@@ -1,4 +1,6 @@
-import { useNavigate } from "@tanstack/react-router";
+"use client";
+
+import { useRouter } from "next/navigation";
 import {
     useFavoritesQuery,
     useFavoriteStatusQuery,
@@ -21,7 +23,7 @@ export function BookmarkButton({
     variant = "icon",
     className,
 }: BookmarkButtonProps) {
-    const navigate = useNavigate();
+    const router = useRouter();
     const accessToken = useAuthStore((state) => state.accessToken);
     const isDetail = variant === "label";
 
@@ -42,7 +44,7 @@ export function BookmarkButton({
     function handleClick() {
         if (!accessToken) {
             if (confirm("즐겨찾기는 로그인 후 사용할 수 있어요. 로그인할까요?")) {
-                navigate({ to: "/login" });
+                router.push("/login");
             }
             return;
         }

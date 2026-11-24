@@ -1,4 +1,6 @@
-import { Link } from "@tanstack/react-router";
+"use client";
+
+import Link from "next/link";
 import { useState } from "react";
 import type { Rating } from "../../api/ratings/ratings";
 import { useMemberRatingsQuery, useRatingMutations } from "../../hooks/use-ratings";
@@ -27,7 +29,7 @@ export function MyRatingSection({ movieId }: MyRatingSectionProps) {
             <h2 className="text-lg font-bold text-ink">내 평점</h2>
             {!accessToken ? (
                 <p className="text-sm text-ink-tertiary">
-                    <Link to="/login" className="font-bold text-action hover:underline">
+                    <Link href="/login" className="font-bold text-action hover:underline">
                         로그인
                     </Link>
                     하면 평점을 남길 수 있어요.
