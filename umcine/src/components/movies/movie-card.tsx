@@ -1,4 +1,4 @@
-import { Link } from '@tanstack/react-router'
+import Link from 'next/link'
 import type { MovieCardItem } from '../../types/movie'
 import BookmarkButton from './bookmark-button'
 import MoviePoster from './movie-poster'
@@ -12,8 +12,7 @@ function MovieCard({ movie }: MovieCardProps) {
     <article className="relative">
       <Link
         className="group flex flex-col gap-1"
-        to="/movies/$movieId"
-        params={{ movieId: String(movie.id) }}
+        href={`/movies/${movie.id}`}
       >
         <MoviePoster
           className="h-[274px] w-full rounded-[10px]"
