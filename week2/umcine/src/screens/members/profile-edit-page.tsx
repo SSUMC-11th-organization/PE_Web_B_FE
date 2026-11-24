@@ -3,10 +3,12 @@
 import { useRouter } from "next/navigation";
 import { useState, type ChangeEvent, type SubmitEvent } from "react";
 import { checkNicknameDuplicate } from "../../api/members/check-nickname-duplicate";
+import type { MemberInfo } from "../../api/members/me";
 import { ProfileAvatar } from "../../components/members/profile-avatar";
-import { useRedirectIfLoggedOut } from "../../hooks/use-redirect-if-logged-out";
+import { useLogout } from "../../hooks/use-logout";
+import { useMeQuery } from "../../hooks/use-me-query";
+import { useUpdateMeMutation } from "../../hooks/use-update-me-mutation";
 import { useAuthStore } from "../../stores/auth-store";
-import { useBookmarkStore } from "../../stores/bookmark-store";
 import { isNicknameValid } from "../../utils/members/validation";
 
 const MAX_PROFILE_IMAGE_SIZE = 5 * 1024 * 1024;
@@ -16,25 +18,26 @@ const inputClassName =
 const primaryButtonClassName =
     "flex h-9 shrink-0 cursor-pointer items-center rounded-lg bg-action px-4 text-[13px] font-extrabold text-white transition-colors hover:bg-action-hover disabled:cursor-not-allowed disabled:bg-action-disabled";
 
-interface Member {
-    email: string;
-    nickname: string;
-}
-
 export function ProfileEditPage() {
-    const member = useRedirectIfLoggedOut();
+    const meQuery = useMeQuery();
 
-    // 저장된 로그인 정보를 불러온 뒤에 폼을 그려야 닉네임 입력창의 초기값이 올바르게 채워져요
-    if (!member) return null;
+    if (meQuery.isPending) {
+        return <p className="flex flex-1 items-center justify-center text-sm text-ink-tertiary">내 정보를 불러오는 중이에요.</p>;
+    }
+    if (meQuery.isError) {
+        return <p className="flex flex-1 items-center justify-center text-sm text-ink-tertiary">내 정보를 불러오지 못했어요.</p>;
+    }
 
-    return <ProfileEditForm member={member} />;
+    // 조회가 끝난 뒤에 폼을 그려야 입력값의 초기값을 내 정보로 채울 수 있어요.
+    return <ProfileEditForm member={meQuery.data} />;
 }
 
-function ProfileEditForm({ member }: { member: Member }) {
+function ProfileEditForm({ member }: { member: MemberInfo }) {
     const router = useRouter();
+    const logout = useLogout();
+    const updateMeMutation = useUpdateMeMutation();
     const savedProfileImageUrl = useAuthStore((state) => state.profileImageUrl);
-    const updateProfile = useAuthStore((state) => state.updateProfile);
-    const logout = useAuthStore((state) => state.logout);
+    const setSavedProfileImageUrl = useAuthStore((state) => state.setProfileImageUrl);
 
     const [nickname, setNickname] = useState(member.nickname);
     const [profileImageUrl, setProfileImageUrl] = useState(savedProfileImageUrl);
@@ -47,7 +50,7 @@ function ProfileEditForm({ member }: { member: Member }) {
     const isNicknameFormatValid = isNicknameValid(nickname);
     const isNicknameReady = !isNicknameChanged || checkedNickname === trimmedNickname;
     const hasChanges = isNicknameChanged || profileImageUrl !== savedProfileImageUrl;
-    const canSave = hasChanges && isNicknameFormatValid && isNicknameReady;
+    const canSave = hasChanges && isNicknameFormatValid && isNicknameReady && !updateMeMutation.isPending;
 
     async function handleCheckNickname() {
         if (!isNicknameFormatValid || !isNicknameChanged || isChecking) return;
@@ -81,16 +84,24 @@ function ProfileEditForm({ member }: { member: Member }) {
         event.preventDefault();
         if (!canSave) return;
 
-        updateProfile({ nickname: trimmedNickname, profileImageUrl });
-        router.push("/profile");
+        // 프로필 이미지는 서버에 저장하지 않아서 화면에서만 바꿔요.
+        setSavedProfileImageUrl(profileImageUrl);
+
+        if (!isNicknameChanged) {
+            router.push("/profile");
+            return;
+        }
+
+        updateMeMutation.mutate(
+            { nickname: trimmedNickname },
+            { onSuccess: () => router.push("/profile") },
+        );
     }
 
     function handleWithdraw() {
-        if (!confirm("정말 탈퇴할까요? 탈퇴하면 복구할 수 없어요.")) return;
-
-        useBookmarkStore.setState({ bookmarkedMovieIds: [] });
+        // 회원 탈퇴 API가 아직 없어서 로그아웃만 해요.
+        if (!confirm("회원 탈퇴 API가 아직 제공되지 않아요. 로그아웃할까요?")) return;
         logout();
-        router.push("/");
     }
 
     return (
@@ -104,7 +115,7 @@ function ProfileEditForm({ member }: { member: Member }) {
                         <p className="text-sm text-ink-secondary">닉네임과 프로필 이미지만 변경할 수 있어요.</p>
                     </div>
                     <button type="submit" disabled={!canSave} className={primaryButtonClassName}>
-                        변경사항 저장
+                        {updateMeMutation.isPending ? "저장 중" : "변경사항 저장"}
                     </button>
                 </div>
 

@@ -1,12 +1,18 @@
 "use client";
 
-import { useBookmarkStore } from "../../stores/bookmark-store";
+import { useRouter } from "next/navigation";
+import {
+    useFavoritesQuery,
+    useFavoriteStatusQuery,
+    useToggleFavoriteMutation,
+} from "../../hooks/use-favorites";
+import { useAuthStore } from "../../stores/auth-store";
 import { cn } from "../../utils/cn";
 
 interface BookmarkButtonProps {
     movieId: number;
     movieTitle: string;
-    /** icon: 포스터 위 아이콘 버튼, label: 글자가 함께 있는 버튼 */
+    /** icon: 포스터 위 아이콘 버튼, label: 글자가 함께 있는 버튼(영화 상세) */
     variant?: "icon" | "label";
     className?: string;
 }
@@ -17,25 +23,48 @@ export function BookmarkButton({
     variant = "icon",
     className,
 }: BookmarkButtonProps) {
-    const isBookmarked = useBookmarkStore((state) =>
-        state.bookmarkedMovieIds.includes(movieId),
-    );
-    const toggleBookmark = useBookmarkStore(
-        (state) => state.toggleBookmark,
-    );
+    const router = useRouter();
+    const accessToken = useAuthStore((state) => state.accessToken);
+    const isDetail = variant === "label";
+
+    // 영화 상세는 GET /favorites/{movieId}로 이 영화만 확인하고,
+    // 목록의 카드들은 카드마다 요청하지 않도록 GET /favorites 한 번의 결과를 함께 써요.
+    const statusQuery = useFavoriteStatusQuery(movieId, isDetail);
+    const favoritesQuery = useFavoritesQuery(!isDetail);
+    const toggleFavoriteMutation = useToggleFavoriteMutation();
+
+    const isBookmarked = isDetail
+        ? (statusQuery.data ?? false)
+        : (favoritesQuery.data?.some((favorite) => favorite.movieId === movieId) ?? false);
+    const isBusy =
+        (toggleFavoriteMutation.isPending && toggleFavoriteMutation.variables?.movieId === movieId) ||
+        (isDetail && statusQuery.isLoading);
     const iconSrc = isBookmarked ? "/icons/bookmark.svg" : "/icons/bookmark-outline.svg";
+
+    function handleClick() {
+        if (!accessToken) {
+            if (confirm("즐겨찾기는 로그인 후 사용할 수 있어요. 로그인할까요?")) {
+                router.push("/login");
+            }
+            return;
+        }
+        if (isBusy) return;
+
+        toggleFavoriteMutation.mutate({ movieId, isFavorite: isBookmarked });
+    }
 
     if (variant === "label") {
         return (
             <button
                 type="button"
                 className={cn(
-                    "flex h-[42px] cursor-pointer items-center justify-center gap-2 rounded-lg px-4 text-sm font-extrabold whitespace-nowrap text-white transition-colors",
+                    "flex h-[42px] cursor-pointer items-center justify-center gap-2 rounded-lg px-4 text-sm font-extrabold whitespace-nowrap text-white transition-colors disabled:cursor-wait disabled:opacity-60",
                     isBookmarked ? "bg-ink hover:bg-ink/85" : "bg-action hover:bg-action-hover",
                     className,
                 )}
                 aria-pressed={isBookmarked}
-                onClick={() => toggleBookmark(movieId)}
+                disabled={isBusy}
+                onClick={handleClick}
             >
                 <img className="size-4 brightness-0 invert" src={iconSrc} alt="" />
                 {isBookmarked ? "즐겨찾기 해제" : "즐겨찾기"}
@@ -47,13 +76,14 @@ export function BookmarkButton({
         <button
             type="button"
             className={cn(
-                "flex size-[34px] shrink-0 cursor-pointer items-center justify-center rounded-lg border transition-colors",
+                "flex size-[34px] shrink-0 cursor-pointer items-center justify-center rounded-lg border transition-colors disabled:cursor-wait",
                 isBookmarked ? "border-action bg-action" : "border-white bg-ink",
                 className,
             )}
             aria-pressed={isBookmarked}
             aria-label={`${movieTitle} 즐겨찾기 ${isBookmarked ? "해제" : "추가"}`}
-            onClick={() => toggleBookmark(movieId)}
+            disabled={isBusy}
+            onClick={handleClick}
         >
             <img className="size-6 brightness-0 invert" src={iconSrc} alt="" />
         </button>

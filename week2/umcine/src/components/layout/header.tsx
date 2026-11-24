@@ -3,11 +3,15 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Suspense } from "react";
+import { useMeQuery } from "../../hooks/use-me-query";
 import { useAuthStore } from "../../stores/auth-store";
 import { cn } from "../../utils/cn";
 
 const navLinkClassName =
   "text-sm font-bold whitespace-nowrap transition-colors hover:text-ink";
+
+const actionLinkClassName =
+  "flex h-[42px] items-center rounded-lg bg-action px-4 text-sm font-extrabold whitespace-nowrap text-white transition-colors hover:bg-action-hover";
 
 export function Header() {
   // /movies/[movieId]처럼 동적 경로는 빌드할 때 주소를 알 수 없어서, 주소를 읽는 부분만 Suspense로 감싸요.
@@ -25,7 +29,9 @@ function HeaderWithPathname() {
 }
 
 function HeaderContent({ pathname }: { pathname: string | null }) {
-  const isLoggedIn = useAuthStore((state) => state.member !== null);
+  const accessToken = useAuthStore((state) => state.accessToken);
+  // 토큰이 있을 때만 내 정보를 조회해요. 토큰이 만료돼 401이면 authApi가 토큰을 지워요.
+  const meQuery = useMeQuery();
   const isMoviesActive =
     pathname === "/" || (pathname?.startsWith("/movies") ?? false);
   const isSearchActive = pathname === "/search";
@@ -82,12 +88,17 @@ function HeaderContent({ pathname }: { pathname: string | null }) {
         >
           <img className="size-6" src="/icons/search.svg" alt="" />
         </Link>
-        <Link
-          href={isLoggedIn ? "/profile" : "/login"}
-          className="flex h-[42px] items-center rounded-lg bg-action px-4 text-sm font-extrabold whitespace-nowrap text-white transition-colors hover:bg-action-hover"
-        >
-          {isLoggedIn ? "마이페이지" : "로그인"}
-        </Link>
+        {!accessToken ? (
+          <Link href="/login" className={actionLinkClassName}>
+            로그인
+          </Link>
+        ) : meQuery.isLoading ? (
+          <span className="h-[42px] w-24 animate-pulse rounded-lg bg-line" aria-label="내 정보를 불러오는 중" />
+        ) : (
+          <Link href="/profile" className={actionLinkClassName}>
+            마이페이지
+          </Link>
+        )}
       </div>
     </header>
   );
