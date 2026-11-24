@@ -1,16 +1,16 @@
 import { useMutation } from "@tanstack/react-query";
-import { useNavigate } from "@tanstack/react-router";
+import { useRouter } from "next/navigation";
 import { authMutations } from "../api/mutations";
 
 // 7주차 try 안의 성공 처리는 onSuccess로, catch 안의 실패 처리는 onError로 옮겼어요.
 export function useSignupMutation() {
-  const navigate = useNavigate();
+  const router = useRouter();
 
   return useMutation({
     ...authMutations.signup(),
     onSuccess: (response) => {
       alert(response.message);
-      navigate({ to: "/login" });
+      router.push("/login");
     },
     onError: () => {
       // 실패하면 입력값을 유지한 채 다시 요청할 수 있어요.

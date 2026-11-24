@@ -1,5 +1,7 @@
+"use client";
+
 import { useQuery } from '@tanstack/react-query'
-import { Link } from '@tanstack/react-router'
+import Link from 'next/link'
 import { useState, type SubmitEvent } from 'react'
 import type { MemberRating } from '../../api/members/models'
 import { memberQueries } from '../../api/members/queries'
@@ -34,7 +36,7 @@ export function MyRatingSection({ movieId }: MyRatingSectionProps) {
       <section className={boxClass}>
         <h2 className="mb-2 text-lg font-bold">내 평점</h2>
         <p className="text-sm text-white/70">
-          <Link className="font-bold text-white underline" to="/login">
+          <Link className="font-bold text-white underline" href="/login">
             로그인
           </Link>
           하면 평점을 남길 수 있어요.

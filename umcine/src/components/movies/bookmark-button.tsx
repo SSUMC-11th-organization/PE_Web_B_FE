@@ -1,4 +1,6 @@
-import { useNavigate } from '@tanstack/react-router'
+"use client";
+
+import { useRouter } from 'next/navigation'
 import { useIsFavorite, useToggleFavoriteMutation } from '../../hooks/use-favorite'
 import { useAuthStore } from '../../stores/auth-store'
 import { cn } from '../../utils/cn'
@@ -12,7 +14,7 @@ interface BookmarkButtonProps {
 
 // 4주차의 localStorage 북마크를 서버 즐겨찾기 API로 바꿨어요. 원본이 서버에 있는 서버 상태라 query 캐시로 관리해요.
 function BookmarkButton({ movieId, className, source = 'list' }: BookmarkButtonProps) {
-  const navigate = useNavigate()
+  const router = useRouter()
   const isLoggedIn = useAuthStore((state) => Boolean(state.accessToken))
   const { isFavorite, isLoading } = useIsFavorite(movieId, source)
   const toggleMutation = useToggleFavoriteMutation(movieId)
@@ -20,7 +22,7 @@ function BookmarkButton({ movieId, className, source = 'list' }: BookmarkButtonP
   const handleClick = () => {
     if (!isLoggedIn) {
       alert('로그인 후 즐겨찾기할 수 있어요.')
-      navigate({ to: '/login' })
+      router.push('/login')
       return
     }
     if (toggleMutation.isPending) return
