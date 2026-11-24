@@ -1,4 +1,6 @@
-import { Link, useParams } from "@tanstack/react-router";
+"use client";
+
+import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { isHTTPError } from "ky";
 import { getMovieDetail } from "../../api/movies/get-movie-detail";
@@ -14,8 +16,11 @@ function formatRuntime(runtime: number | null) {
     return hours > 0 ? `${hours}시간 ${minutes}분` : `${minutes}분`;
 }
 
-export function MovieDetailPage() {
-    const { movieId: movieIdParam } = useParams({ from: "/movies/$movieId" });
+interface MovieDetailPageProps {
+    movieIdParam: string;
+}
+
+export function MovieDetailPage({ movieIdParam }: MovieDetailPageProps) {
     const movieId = Number(movieIdParam);
     const isValidMovieId = Number.isInteger(movieId) && movieId > 0;
 
@@ -39,7 +44,7 @@ export function MovieDetailPage() {
                         ? "올바르지 않은 영화 번호예요."
                         : getMovieDetailErrorMessage(movieDetailQuery.error)}
                 </p>
-                <Link to="/" className="text-sm font-extrabold text-action hover:underline">
+                <Link href="/" className="text-sm font-extrabold text-action hover:underline">
                     영화 목록으로
                 </Link>
             </main>
@@ -73,7 +78,7 @@ export function MovieDetailPage() {
                 {/* 배경이 밝은 영화에서도 흰 글자가 읽히도록 아래쪽만 어둡게 해요 */}
                 <div className="absolute inset-0 -z-10 bg-linear-to-t from-black/60 via-black/10 to-black/20" />
 
-                <Link to="/" className="flex w-fit items-center gap-1 text-[13px] font-bold">
+                <Link href="/" className="flex w-fit items-center gap-1 text-[13px] font-bold">
                     <img className="size-6 invert" src="/icons/chevron-left.svg" alt="" />
                     영화 목록
                 </Link>

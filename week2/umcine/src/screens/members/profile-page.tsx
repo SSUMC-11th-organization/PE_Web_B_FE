@@ -1,10 +1,13 @@
-import { Link } from "@tanstack/react-router";
+"use client";
+
+import Link from "next/link";
 import { useQueries } from "@tanstack/react-query";
 import { useState } from "react";
 import { getMovieDetail } from "../../api/movies/get-movie-detail";
 import { ProfileAvatar } from "../../components/members/profile-avatar";
 import MovieGrid from "../../components/movies/movie-grid";
 import Pagination from "../../components/movies/pagination";
+import { useRedirectIfLoggedOut } from "../../hooks/use-redirect-if-logged-out";
 import { useAuthStore } from "../../stores/auth-store";
 import { useBookmarkStore } from "../../stores/bookmark-store";
 
@@ -12,7 +15,7 @@ import { useBookmarkStore } from "../../stores/bookmark-store";
 const BOOKMARKS_PER_PAGE = 10;
 
 export function ProfilePage() {
-    const member = useAuthStore((state) => state.member);
+    const member = useRedirectIfLoggedOut();
     const profileImageUrl = useAuthStore((state) => state.profileImageUrl);
     const bookmarkedMovieIds = useBookmarkStore((state) => state.bookmarkedMovieIds);
     const [page, setPage] = useState(1);
@@ -43,7 +46,7 @@ export function ProfilePage() {
             <div className="flex items-center justify-between gap-4 border-b border-line pb-5">
                 <h1 className="text-[38px] leading-[44px] font-bold tracking-[-1.71px] text-ink">내 정보</h1>
                 <Link
-                    to="/profile/edit"
+                    href="/profile/edit"
                     className="flex h-9 shrink-0 items-center rounded-lg bg-action px-4 text-[13px] font-extrabold text-white transition-colors hover:bg-action-hover"
                 >
                     정보 수정

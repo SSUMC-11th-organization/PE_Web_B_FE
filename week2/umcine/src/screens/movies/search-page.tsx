@@ -1,4 +1,7 @@
-import { Link, useNavigate, useSearch } from "@tanstack/react-router";
+"use client";
+
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import type { SubmitEvent } from "react";
 import { searchMovies } from "../../api/movies/search-movies";
@@ -9,8 +12,9 @@ const submitButtonClassName =
     "h-[42px] shrink-0 cursor-pointer rounded-lg bg-ink px-4 text-sm font-extrabold whitespace-nowrap text-white transition-colors hover:bg-ink/85";
 
 export function SearchPage() {
-    const { query } = useSearch({ from: "/search" });
-    const navigate = useNavigate({ from: "/search" });
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const query = searchParams.get("query") ?? undefined;
     const normalizedQuery = query?.trim() ?? "";
 
     const searchQuery = useQuery({
@@ -25,9 +29,7 @@ export function SearchPage() {
         event.preventDefault();
         const formData = new FormData(event.currentTarget);
         const nextQuery = String(formData.get("query") ?? "").trim();
-        navigate({
-            search: nextQuery ? { query: nextQuery } : {},
-        });
+        router.push(nextQuery ? `/search?${new URLSearchParams({ query: nextQuery })}` : "/search");
     }
 
     if (!normalizedQuery) {
@@ -77,7 +79,7 @@ export function SearchPage() {
                         defaultValue={query}
                         className="min-w-0 flex-1 text-sm font-bold outline-none [&::-webkit-search-cancel-button]:hidden"
                     />
-                    <Link to="/search" className="shrink-0" aria-label="검색어 지우기">
+                    <Link href="/search" className="shrink-0" aria-label="검색어 지우기">
                         <img className="size-6" src="/icons/close.svg" alt="" />
                     </Link>
                     <button type="submit" className={submitButtonClassName}>
@@ -105,8 +107,7 @@ export function SearchPage() {
                         <li key={movie.id} className="min-w-0">
                             <article className="flex gap-[18px] border-b border-line py-5">
                                 <Link
-                                    to="/movies/$movieId"
-                                    params={{ movieId: String(movie.id) }}
+                                    href={`/movies/${movie.id}`}
                                     className="shrink-0"
                                 >
                                     <img
@@ -125,8 +126,7 @@ export function SearchPage() {
                                         {movie.overview}
                                     </p>
                                     <Link
-                                        to="/movies/$movieId"
-                                        params={{ movieId: String(movie.id) }}
+                                        href={`/movies/${movie.id}`}
                                         className="flex items-center gap-1 text-xs font-extrabold text-action hover:underline"
                                     >
                                         상세 보기

@@ -1,4 +1,7 @@
-import { Link, useNavigate } from "@tanstack/react-router";
+"use client";
+
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState, type SubmitEvent } from "react";
 import { useAuthStore } from "../../stores/auth-store";
 import { EMAIL_REGEX } from "../../utils/members/validation";
@@ -9,7 +12,7 @@ const inputClassName =
     "min-w-0 flex-1 text-sm text-ink outline-none placeholder:text-ink-tertiary";
 
 export function LoginPage() {
-    const navigate = useNavigate();
+    const router = useRouter();
     const login = useAuthStore((state) => state.login);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -22,7 +25,7 @@ export function LoginPage() {
 
         // 로그인 API를 연결하기 전이라 비밀번호는 확인하지 않아요.
         login(email.trim());
-        navigate({ to: "/" });
+        router.push("/");
     }
 
     return (
@@ -72,7 +75,7 @@ export function LoginPage() {
 
                 <p className="mt-6 text-center text-[13px] text-ink-tertiary">
                     처음이신가요?{" "}
-                    <Link to="/signup" className="font-bold text-action hover:underline">
+                    <Link href="/signup" className="font-bold text-action hover:underline">
                         회원가입
                     </Link>
                 </p>

@@ -1,7 +1,10 @@
-import { useNavigate } from "@tanstack/react-router";
+"use client";
+
+import { useRouter } from "next/navigation";
 import { useState, type ChangeEvent, type SubmitEvent } from "react";
 import { checkNicknameDuplicate } from "../../api/members/check-nickname-duplicate";
 import { ProfileAvatar } from "../../components/members/profile-avatar";
+import { useRedirectIfLoggedOut } from "../../hooks/use-redirect-if-logged-out";
 import { useAuthStore } from "../../stores/auth-store";
 import { useBookmarkStore } from "../../stores/bookmark-store";
 import { isNicknameValid } from "../../utils/members/validation";
@@ -13,20 +16,31 @@ const inputClassName =
 const primaryButtonClassName =
     "flex h-9 shrink-0 cursor-pointer items-center rounded-lg bg-action px-4 text-[13px] font-extrabold text-white transition-colors hover:bg-action-hover disabled:cursor-not-allowed disabled:bg-action-disabled";
 
+interface Member {
+    email: string;
+    nickname: string;
+}
+
 export function ProfileEditPage() {
-    const navigate = useNavigate();
-    const member = useAuthStore((state) => state.member);
+    const member = useRedirectIfLoggedOut();
+
+    // 저장된 로그인 정보를 불러온 뒤에 폼을 그려야 닉네임 입력창의 초기값이 올바르게 채워져요
+    if (!member) return null;
+
+    return <ProfileEditForm member={member} />;
+}
+
+function ProfileEditForm({ member }: { member: Member }) {
+    const router = useRouter();
     const savedProfileImageUrl = useAuthStore((state) => state.profileImageUrl);
     const updateProfile = useAuthStore((state) => state.updateProfile);
     const logout = useAuthStore((state) => state.logout);
 
-    const [nickname, setNickname] = useState(member?.nickname ?? "");
+    const [nickname, setNickname] = useState(member.nickname);
     const [profileImageUrl, setProfileImageUrl] = useState(savedProfileImageUrl);
     // 중복 확인을 통과한 닉네임이에요. 값을 바꾸면 다시 확인해야 해요.
     const [checkedNickname, setCheckedNickname] = useState<string | null>(null);
     const [isChecking, setIsChecking] = useState(false);
-
-    if (!member) return null;
 
     const trimmedNickname = nickname.trim();
     const isNicknameChanged = trimmedNickname !== member.nickname;
@@ -68,7 +82,7 @@ export function ProfileEditPage() {
         if (!canSave) return;
 
         updateProfile({ nickname: trimmedNickname, profileImageUrl });
-        navigate({ to: "/profile" });
+        router.push("/profile");
     }
 
     function handleWithdraw() {
@@ -76,7 +90,7 @@ export function ProfileEditPage() {
 
         useBookmarkStore.setState({ bookmarkedMovieIds: [] });
         logout();
-        navigate({ to: "/" });
+        router.push("/");
     }
 
     return (

@@ -36,6 +36,8 @@ export const useAuthStore = create<AuthStore>()(
         {
             name: "umcine-auth-store",
             storage: createJSONStorage(() => localStorage),
+            // 서버 HTML과 첫 화면이 같도록 store를 만들 때 바로 불러오지 않고, Providers에서 hydration 뒤에 불러와요
+            skipHydration: true,
             partialize: (state) => ({ member: state.member }),
         },
     ),
